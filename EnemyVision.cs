@@ -7,6 +7,8 @@ namespace Doom_Dude.EnemyASI
         [Header("Vision Settings")]
         [SerializeField] private float viewRadius = 15f;
         [SerializeField] [Range(0, 360)] private float viewAngle = 90f;
+        [Tooltip("If the player is within this radius, the enemy will detect them regardless of where they are facing (prevents losing the player during close combat).")]
+        [SerializeField] private float proximityRadius = 3f;
 
         [Header("Layer Masks")]
         [SerializeField] private LayerMask targetMask; // The player layer
@@ -32,10 +34,11 @@ namespace Doom_Dude.EnemyASI
                 Transform target = targetsInViewRadius[i].transform;
                 Vector3 dirToTarget = (target.position - transform.position).normalized;
 
-                if (Vector3.Angle(transform.forward, dirToTarget) < viewAngle / 2)
-                {
-                    float dstToTarget = Vector3.Distance(transform.position, target.position);
+                float dstToTarget = Vector3.Distance(transform.position, target.position);
 
+                // Check if target is within the view cone, OR if they are extremely close (proximity)
+                if (Vector3.Angle(transform.forward, dirToTarget) < viewAngle / 2 || dstToTarget <= proximityRadius)
+                {
                     // If raycast doesn't hit an obstacle, we can see the target
                     if (!Physics.Raycast(transform.position, dirToTarget, dstToTarget, obstacleMask))
                     {
@@ -51,6 +54,10 @@ namespace Doom_Dude.EnemyASI
         {
             Gizmos.color = Color.white;
             Gizmos.DrawWireSphere(transform.position, viewRadius);
+            
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(transform.position, proximityRadius);
+            Gizmos.color = Color.white;
 
             Vector3 viewAngleA = DirFromAngle(-viewAngle / 2, false);
             Vector3 viewAngleB = DirFromAngle(viewAngle / 2, false);
