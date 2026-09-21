@@ -32,8 +32,6 @@ namespace Doom_Dude.EnemyASI
         private NavMeshAgent agent;
 
         // Animator Hashes for performance
-        private readonly int hashWalk = Animator.StringToHash("Walk");
-        private readonly int hashRun = Animator.StringToHash("Run");
         private readonly int hashAttack = Animator.StringToHash("Attack");
         private readonly int hashDie = Animator.StringToHash("Die");
 
@@ -84,12 +82,7 @@ namespace Doom_Dude.EnemyASI
 
             currentState = newState;
 
-            // Reset Animation Triggers/Bools
-            if (animator != null)
-            {
-                animator.SetBool(hashWalk, false);
-                animator.SetBool(hashRun, false);
-            }
+            // Reset Animation Triggers (if any specific ones need resetting)
 
             switch (currentState)
             {
@@ -101,7 +94,6 @@ namespace Doom_Dude.EnemyASI
                 case EnemyState.Walk:
                     agent.isStopped = false;
                     agent.speed = walkSpeed;
-                    if (animator != null) animator.SetBool(hashWalk, true);
                     if (patrol != null && patrol.HasPatrolPoints)
                     {
                         agent.SetDestination(patrol.GetCurrentPatrolPoint());
@@ -111,7 +103,6 @@ namespace Doom_Dude.EnemyASI
                 case EnemyState.Run:
                     agent.isStopped = false;
                     agent.speed = runSpeed;
-                    if (animator != null) animator.SetBool(hashRun, true);
                     break;
 
                 case EnemyState.Attack:
