@@ -21,6 +21,14 @@ namespace Doom_Dude.EnemyASI
         [Tooltip("How many attack variations does this weapon have in the animator? (Starts at 0)")]
         public int numberOfAttackVariations = 1;
 
+        [Header("Audio Settings")]
+        [Tooltip("Optional. Attack sounds (gunshots, punches, sword swings)")]
+        [SerializeField] private AudioClip[] attackSounds;
+        [SerializeField] private float attackSoundVolume = 1f;
+        [SerializeField] private float attackSoundRadius = 25f;
+        [SerializeField] [Range(0.8f, 1.2f)] private float attackPitchMin = 0.95f;
+        [SerializeField] [Range(0.8f, 1.2f)] private float attackPitchMax = 1.05f;
+
         [Header("Melee Settings")]
         [SerializeField] private Transform meleeHitPoint;
         [SerializeField] private float meleeHitRadius = 0.5f;
@@ -45,6 +53,12 @@ namespace Doom_Dude.EnemyASI
         public override void TriggerAttackEvent()
         {
             if (currentTarget == null) return;
+
+            // Play Attack SFX if assigned
+            if (attackSounds != null && attackSounds.Length > 0)
+            {
+                PlayProfessional3DSound(attackSounds, attackSoundVolume, attackSoundRadius, attackPitchMin, attackPitchMax);
+            }
 
             switch (attackType)
             {
@@ -129,6 +143,31 @@ namespace Doom_Dude.EnemyASI
                 Vector3 hitCenter = meleeHitPoint != null ? meleeHitPoint.position : transform.position + transform.forward;
                 Gizmos.DrawWireSphere(hitCenter, meleeHitRadius);
             }
+        }
+
+        // --- Utility ---
+        private void PlayProfessional3DSound(AudioClip[] clips, float volume, float radius, float minPitch, float maxPitch)
+        {
+            if (clips == null || clips.Length == 0) return;
+            AudioClip clip = clips[Random.Range(0, clips.Length)];
+            if (clip == null) return;
+
+            GameObject audioObj = new GameObject("TempAttackAudio");
+            audioObj.transform.position = transform.position;
+            AudioSource source = audioObj.AddComponent<AudioSource>();
+            
+            source.clip = clip;
+            source.volume = volume;
+            source.pitch = Random.Range(minPitch, maxPitch);
+            
+            // Professional 3D Settings
+            source.spatialBlend = 1f; 
+            source.maxDistance = radius;
+            source.rolloffMode = AudioRolloffMode.Linear;
+            source.dopplerLevel = 0f;
+            
+            source.Play();
+            Destroy(audioObj, clip.length + 0.1f);
         }
     }
 }
