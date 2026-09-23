@@ -41,6 +41,14 @@ namespace Doom_Dude.EnemyASI
 
         private Transform currentTarget;
 
+        private void Awake()
+        {
+            if (targetMask.value == 0)
+            {
+                Debug.LogError($"<color=red><b>CRITICAL SETUP ERROR:</b></color> On '{gameObject.name}', the UniversalEnemyAttack script has its Target Mask set to 'Nothing'! You must set it to 'Player' or the attacks will pass straight through!", gameObject);
+            }
+        }
+
         protected override void ExecuteAttack(Transform target)
         {
             // Store target for when the animation event fires
@@ -102,12 +110,22 @@ namespace Doom_Dude.EnemyASI
 
             if (Physics.Raycast(spawnPos, aimDirection, out RaycastHit hit, attackRange, targetMask))
             {
+                Debug.Log($"<color=cyan>Raycast Hit Object:</color> {hit.collider.name}"); // Tells us exactly what it hit!
+
                 IDamageable damageable = hit.collider.GetComponent<IDamageable>();
                 if (damageable != null)
                 {
                     damageable.TakeDamage(attackDamage);
                     Debug.Log("Universal Enemy hit target with Raycast!");
                 }
+                else
+                {
+                    Debug.LogWarning($"<color=orange>Raycast hit {hit.collider.name}, but it doesn't have an IDamageable script attached!</color>");
+                }
+            }
+            else
+            {
+                Debug.Log($"<color=yellow>Raycast Fired, but missed all colliders on the TargetMask layer!</color>");
             }
             Debug.DrawRay(spawnPos, aimDirection * attackRange, Color.red, 2f);
         }

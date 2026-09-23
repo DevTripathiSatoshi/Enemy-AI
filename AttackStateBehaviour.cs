@@ -18,7 +18,12 @@ namespace Doom_Dude.EnemyASI
             // Cache the reference for performance so we don't call GetComponent every frame
             if (animationHandler == null)
             {
-                animationHandler = animator.GetComponent<EnemyAnimationHandler>();
+                animationHandler = animator.GetComponentInParent<EnemyAnimationHandler>();
+                
+                if (animationHandler == null)
+                {
+                    Debug.LogError($"<color=red><b>CRITICAL ERROR:</b></color> AttackStateBehaviour on {animator.gameObject.name} cannot find the 'EnemyAnimationHandler' script! Make sure it is attached to the same object or a parent object!");
+                }
             }
         }
 
