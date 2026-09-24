@@ -38,6 +38,17 @@ namespace Doom_Dude.EnemyASI
         private void Awake()
         {
             agent = GetComponent<NavMeshAgent>();
+            
+            // Professional Crowd Control: 
+            // Randomize priority so they don't deadlock when bumping into each other
+            if (agent != null)
+            {
+                agent.avoidancePriority = Random.Range(30, 80); 
+                
+                // Increase turn speed so they face where they are being pushed instead of sliding sideways
+                if (agent.angularSpeed < 300f) agent.angularSpeed = 600f;
+            }
+
             if (vision == null) vision = GetComponent<EnemyVision>();
             if (health == null) health = GetComponent<EnemyHealth>();
             if (patrol == null) patrol = GetComponent<EnemyPatrol>();
@@ -88,12 +99,14 @@ namespace Doom_Dude.EnemyASI
             {
                 case EnemyState.Idle:
                     agent.isStopped = true;
+                    agent.velocity = Vector3.zero;
                     if (patrol != null) patrol.ResetTimer();
                     break;
 
                 case EnemyState.Walk:
                     agent.isStopped = false;
                     agent.speed = walkSpeed;
+                    agent.stoppingDistance = 1.5f; // Prevent crowding at exact patrol points
                     if (patrol != null && patrol.HasPatrolPoints)
                     {
                         agent.SetDestination(patrol.GetCurrentPatrolPoint());
@@ -103,14 +116,20 @@ namespace Doom_Dude.EnemyASI
                 case EnemyState.Run:
                     agent.isStopped = false;
                     agent.speed = runSpeed;
+                    
+                    // Stop slightly before their attack range so they don't push into the player
+                    if (attack != null) agent.stoppingDistance = Mathf.Max(0.5f, attack.AttackRange - 0.2f);
+                    else agent.stoppingDistance = 1.5f;
                     break;
 
                 case EnemyState.Attack:
                     agent.isStopped = true;
+                    agent.velocity = Vector3.zero;
                     break;
 
                 case EnemyState.Die:
                     agent.isStopped = true;
+                    agent.velocity = Vector3.zero;
                     agent.enabled = false;
                     if (animator != null) animator.SetTrigger(hashDie);
                     break;

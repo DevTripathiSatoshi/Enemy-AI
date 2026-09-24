@@ -143,6 +143,14 @@ namespace Doom_Dude.EnemyASI
             if (projectilePrefab != null)
             {
                 GameObject projectile = Instantiate(projectilePrefab, spawnPos, Quaternion.LookRotation(aimDirection));
+                
+                // Initialize the bullet damage and layers!
+                EnemyProjectile projScript = projectile.GetComponent<EnemyProjectile>();
+                if (projScript != null)
+                {
+                    projScript.Initialize(attackDamage, targetMask);
+                }
+
                 Rigidbody rb = projectile.GetComponent<Rigidbody>();
                 if (rb != null)
                 {
